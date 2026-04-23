@@ -8,13 +8,29 @@
     <div class="row">
         <div class="col-md-8 mx-auto">
             <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h4><i class="fas fa-check-circle"></i> Booking Confirmed!</h4>
+                <div class="card-header {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %} text-white">
+                    <h4>
+                        {% if booking.status == 'confirmed' %}
+                            <i class="fas fa-check-circle"></i> Booking Confirmed!
+                        {% elif booking.status == 'pending' %}
+                            <i class="fas fa-clock"></i> Payment Pending
+                        {% else %}
+                            <i class="fas fa-info-circle"></i> Booking {{ booking.get_status_display }}
+                        {% endif %}
+                    </h4>
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        <i class="fas fa-ticket-alt fa-4x text-success mb-3"></i>
-                        <h5>Your booking has been confirmed</h5>
+                        {% if booking.status == 'confirmed' %}
+                            <i class="fas fa-ticket-alt fa-4x text-success mb-3"></i>
+                            <h5>Your booking has been confirmed</h5>
+                        {% elif booking.status == 'pending' %}
+                            <i class="fas fa-credit-card fa-4x text-warning mb-3"></i>
+                            <h5>Payment verification in progress</h5>
+                        {% else %}
+                            <i class="fas fa-info-circle fa-4x text-secondary mb-3"></i>
+                            <h5>Booking Status: {{ booking.get_status_display }}</h5>
+                        {% endif %}
                         <p class="text-muted">Booking Reference: <strong>{{ booking.booking_reference }}</strong></p>
                     </div>
                     
@@ -33,12 +49,15 @@
                             <p><strong>Quantity:</strong> {{ booking.quantity }} ticket(s)</p>
                             <p><strong>Total Amount:</strong> ₹{{ booking.total_amount }}</p>
                             <p><strong>Status:</strong> 
-                                <span class="badge bg-success">{{ booking.get_status_display }}</span>
+                                <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
                             </p>
                             <p><strong>Booked on:</strong> {{ booking.created_at|date:"M d, Y g:i A" }}</p>
                         </div>
                     </div>
                     
+                    {% if booking.status == 'confirmed' %}
                     <div class="mt-4">
                         <h6>Your Tickets</h6>
                         <hr>
@@ -58,6 +77,14 @@
                         <i class="fas fa-info-circle"></i>
                         <strong>Important:</strong> Please save this confirmation. You'll need your booking reference and ticket numbers at the event.
                     </div>
+                    {% elif booking.status == 'pending' %}
+                    <div class="alert alert-warning mt-4 text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                        <h5>Your tickets will be generated once payment is confirmed.</h5>
+                        <p>If you haven't paid yet, please complete the payment using the link below.</p>
+                        <a href="{% url 'events:initiate_payment' booking.id %}" class="btn btn-warning btn-lg px-5">Complete Payment Now</a>
+                    </div>
+                    {% endif %}
                     
                     <div class="text-center mt-4">
                         <a href="{% url 'events:my_bookings' %}" class="btn btn-primary">View My Bookings</a>

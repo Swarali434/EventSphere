@@ -129,9 +129,14 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-1">{{ booking.event.title }}</h6>
                                 <small class="text-muted">
-                                    {{ booking.quantity }} ticket(s) - ${{ booking.total_amount }}
+                                    {{ booking.quantity }} ticket(s) - ₹{{ booking.total_amount }}
                                     <br>{{ booking.created_at|date:"M d, Y" }}
                                 </small>
+                                {% if booking.status == 'pending' %}
+                                <div class="mt-2">
+                                    <a href="{% url 'events:initiate_payment' booking.id %}" class="btn btn-warning btn-sm py-0" style="font-size: 0.8rem;">Pay Now</a>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         {% endfor %}

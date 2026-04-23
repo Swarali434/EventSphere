@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q, Avg
 from django.contrib import messages
+from django.utils import timezone
 from .models import Event, Category, UserFavorite, Review, Booking, Ticket
 from .forms import EventSearchForm, EventForm, VenueForm
 from django.core.paginator import Paginator
@@ -176,7 +177,7 @@ def book_event(request, event_id):
     if request.method == 'POST':
         quantity = int(request.POST.get('quantity', 1))
 
-        # Create booking
+        # Create booking (Defaults to pending)
         booking = Booking.objects.create(
             user=request.user,
             event=event,
@@ -184,27 +185,8 @@ def book_event(request, event_id):
             total_amount=event.price * quantity
         )
 
-        # Create tickets
-        for i in range(quantity):
-            Ticket.objects.create(booking=booking)
-
-        # Create notification
-        from notifications.views import create_notification
-        create_notification(
-            user=request.user,
-            title='Booking Confirmed',
-            message=f'Your booking for {event.title} has been confirmed. Booking reference: {booking.booking_reference}',
-            notification_type='booking_confirmed',
-            event=event,
-            booking=booking
-        )
-
-        # Send confirmation email
-        from .email_utils import send_booking_confirmation_email
-        send_booking_confirmation_email(booking)
-
-        messages.success(request, f'Successfully booked {quantity} ticket(s) for {event.title}!')
-        return redirect('events:booking_confirmation', booking_id=booking.id)
+        messages.info(request, f'Please complete the payment for your {quantity} ticket(s).')
+        return redirect('events:initiate_payment', booking_id=booking.id)
 
     context = {
         'event': event,
@@ -219,6 +201,71 @@ def booking_confirmation(request, booking_id):
         'booking': booking,
     }
     return render(request, 'events/booking_confirmation.html', context)
+
+
+@login_required
+def initiate_payment(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    if booking.status != 'pending':
+        return redirect('events:booking_confirmation', booking_id=booking.id)
+
+    # UPI Details (Replace with actual VPA for a real app)
+    vpa = "upi@okicici" # Placeholder
+    name = "EventSphere"
+    amount = float(booking.total_amount)
+    note = f"Booking {booking.booking_reference}"
+    
+    # Generate UPI URL
+    upi_payload = f"upi://pay?pa={vpa}&pn={name}&am={amount}&tn={note}&cu=INR"
+    
+    # Use a public QR API for convenience
+    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={upi_payload}"
+
+    context = {
+        'booking': booking,
+        'upi_payload': upi_payload,
+        'qr_url': qr_url,
+        'vpa': vpa
+    }
+    return render(request, 'events/pay_upi.html', context)
+
+
+@login_required
+def confirm_payment(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    if request.method == 'POST':
+        transaction_id = request.POST.get('transaction_id')
+        if transaction_id:
+            booking.transaction_id = transaction_id
+            booking.status = 'confirmed'
+            booking.save()
+
+            # Create tickets now that it's confirmed
+            if not booking.tickets.exists():
+                for i in range(booking.quantity):
+                    Ticket.objects.create(booking=booking)
+
+            # Create notification
+            from notifications.views import create_notification
+            create_notification(
+                user=request.user,
+                title='Booking Confirmed',
+                message=f'Your booking for {booking.event.title} has been confirmed. Booking reference: {booking.booking_reference}',
+                notification_type='booking_confirmed',
+                event=booking.event,
+                booking=booking
+            )
+
+            # Send confirmation email
+            from .email_utils import send_booking_confirmation_email
+            send_booking_confirmation_email(booking)
+
+            messages.success(request, 'Payment submitted! Your booking is now confirmed.')
+            return redirect('events:booking_confirmation', booking_id=booking.id)
+        else:
+            messages.error(request, 'Please provide the Transaction ID (UTR).')
+    
+    return redirect('events:initiate_payment', booking_id=booking.id)
 
 
 @login_required
