@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}EventSphere - Discover Events{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-overlay">
+        <div class="container">
+            <div class="row align-items-center min-vh-75">
+                <div class="col-lg-6">
+                    <h1 class="display-4 text-white fw-bold mb-4">
+                        Discover concerts<br>and events
+                    </h1>
+                    <form method="GET" action="{% url 'events:search_events' %}" class="search-form">
+                        <div class="input-group input-group-lg">
+                            <input type="text" class="form-control" name="q" placeholder="Search for events..." 
+                                   value="{{ request.GET.q }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Concert Category -->
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'events:events_by_category' 'concert' %}" class="text-decoration-none">
+                    <div class="category-card">
+                        <div class="category-image concert-bg">
+                            <div class="category-overlay">
+                                <h3 class="text-white">Concert</h3>
+                                <p class="text-white-50">Event starts in 5 days</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Festival Category -->
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'events:events_by_category' 'festival' %}" class="text-decoration-none">
+                    <div class="category-card">
+                        <div class="category-image festival-bg">
+                            <div class="category-overlay">
+                                <h3 class="text-white">Festival</h3>
+                                <p class="text-white-50">Event starts in 12 days</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Sports Category -->
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'events:events_by_category' 'sports' %}" class="text-decoration-none">
+                    <div class="category-card">
+                        <div class="category-image sports-bg">
+                            <div class="category-overlay">
+                                <h3 class="text-white">Sports</h3>
+                                <p class="text-white-50">Event starts in 20 days</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Events Section -->
+{% if featured_events %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Events</h2>
+        <div class="row">
+            {% for event in featured_events %}
+            <div class="col-md-4 mb-4">
+                <div class="card event-card h-100">
+                    {% if event.image %}
+                    <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}">
+                    {% else %}
+                    <div class="card-img-top bg-primary d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-calendar-alt fa-3x text-white"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ event.title }}</h5>
+                        <p class="card-text text-muted">
+                            <i class="fas fa-map-marker-alt"></i> {{ event.venue.name }}<br>
+                            <i class="fas fa-calendar"></i> {{ event.date|date:"M d, Y" }}<br>
+                            <i class="fas fa-indian-rupee-sign"></i> ₹{{ event.price }}
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-primary w-100">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'events:event_list' %}" class="btn btn-outline-primary btn-lg">View All Events</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

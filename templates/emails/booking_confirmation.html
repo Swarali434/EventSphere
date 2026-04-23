@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation - EventSphere</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #007bff; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f8f9fa; }
+        .booking-details { background: white; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        .btn { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎪 EventSphere</h1>
+            <h2>Booking Confirmation</h2>
+        </div>
+        
+        <div class="content">
+            <h3>Hi {{ booking.user.first_name|default:booking.user.username }},</h3>
+            
+            <p>Great news! Your booking has been confirmed. Here are your event details:</p>
+            
+            <div class="booking-details">
+                <h4>{{ booking.event.title }}</h4>
+                <p><strong>Venue:</strong> {{ booking.event.venue.name }}</p>
+                <p><strong>Address:</strong> {{ booking.event.venue.address }}, {{ booking.event.venue.city }}, {{ booking.event.venue.state }}</p>
+                <p><strong>Date & Time:</strong> {{ booking.event.date|date:"l, F d, Y" }} at {{ booking.event.date|time:"g:i A" }}</p>
+                <p><strong>Tickets:</strong> {{ booking.quantity }}</p>
+                <p><strong>Total Amount:</strong> ${{ booking.total_amount }}</p>
+                <p><strong>Booking Reference:</strong> {{ booking.booking_reference }}</p>
+            </div>
+            
+            <h4>Your Tickets:</h4>
+            <ul>
+                {% for ticket in booking.tickets.all %}
+                <li>Ticket #{{ forloop.counter }}: {{ ticket.ticket_number }}</li>
+                {% endfor %}
+            </ul>
+            
+            <p><strong>Important:</strong> Please bring this confirmation email and a valid ID to the event. You'll need your booking reference and ticket numbers for entry.</p>
+            
+            <p>We hope you have an amazing time at {{ booking.event.title }}!</p>
+            
+            <p>Best regards,<br>The EventSphere Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated email. Please do not reply to this message.</p>
+            <p>© 2025 EventSphere. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

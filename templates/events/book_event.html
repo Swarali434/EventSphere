@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book {{ event.title }} - EventSphere{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Book Event</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            {% if event.image %}
+                            <img src="{{ event.image.url }}" class="img-fluid rounded" alt="{{ event.title }}">
+                            {% else %}
+                            <div class="bg-primary rounded d-flex align-items-center justify-content-center text-white" style="height: 200px;">
+                                <i class="fas fa-calendar-alt fa-3x"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h5>{{ event.title }}</h5>
+                            <p class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> {{ event.venue.name}}<br>
+                                <i class="fas fa-calendar"></i> {{ event.date|date:"l, F d, Y" }} at {{ event.date|time:"g:i A" }}<br>
+                                <i class="fas fa-tag"></i> {{ event.category.name}}
+                            </p>
+                            <div class="mb-3">
+                                <h6>Event Description</h6>
+                                <p>{{ event.description|truncatewords:30 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <form method="post" id="bookingForm">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Number of Tickets</label>
+                                    <select name="quantity" id="quantity" class="form-select" required>
+                                        <option value="1">1 Ticket</option>
+                                        <option value="2">2 Tickets</option>
+                                        <option value="3">3 Tickets</option>
+                                        <option value="4">4 Tickets</option>
+                                        <option value="5">5 Tickets</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Price per Ticket</label>
+                                    <div class="form-control-plaintext">
+                                        <strong>₹{{ event.price }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Total Amount</label>
+                                    <div class="form-control-plaintext">
+                                        <h5 class="text-primary" id="totalAmount">₹{{ event.price }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline-secondary">Back to Event</a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-ticket-alt"></i> Book Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quantitySelect = document.getElementById('quantity');
+    const totalAmountDiv = document.getElementById('totalAmount');
+    const pricePerTicket = {{ event.price }};
+    
+    quantitySelect.addEventListener('change', function() {
+        const quantity = parseInt(this.value);
+        const total = (pricePerTicket * quantity).toFixed(2);
+        totalAmountDiv.textContent = '₹' + total;
+    });
+});
+</script>
+
+{% endblock %}

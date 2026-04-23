@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Dashboard - EventSphere{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>EventSphere</h2>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">Logout</a>
+    </div>
+    
+    <h3 class="mb-4">Welcome back, {{ user.first_name|default:user.username }}!</h3>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ total_bookings }}</h4>
+                            <p class="mb-0">Total Bookings</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-ticket-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>₹{{ total_spent|floatformat:2 }}</h4>
+                            <p class="mb-0">Total Spent</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-indian-rupee-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ favorites.count }}</h4>
+                            <p class="mb-0">Favorite Events</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-heart fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ my_events_count }}</h4>
+                            <p class="mb-0">My Events</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-plus fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form method="GET" class="d-flex">
+                <input type="text" class="form-control" name="q" placeholder="Search for events..." 
+                       value="{{ query }}">
+                <button class="btn btn-outline-secondary ms-2" type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Search Results -->
+    {% if search_results %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5>Search Results</h5>
+            <div class="list-group">
+                {% for event in search_results %}
+                <a href="{% url 'events:event_detail' event.pk %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ event.title }}</h6>
+                        <small>${{ event.price }}</small>
+                    </div>
+                    <p class="mb-1">{{ event.venue.name }} - {{ event.date|date:"M d, Y" }}</p>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <!-- Recent Bookings -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_bookings %}
+                        {% for booking in recent_bookings %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <span class="badge bg-{% if booking.status == 'confirmed' %}success{% elif booking.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ booking.event.title }}</h6>
+                                <small class="text-muted">
+                                    {{ booking.quantity }} ticket(s) - ${{ booking.total_amount }}
+                                    <br>{{ booking.created_at|date:"M d, Y" }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <a href="{% url 'events:my_bookings' %}" class="btn btn-outline-primary btn-sm">View All Bookings</a>
+                    {% else %}
+                        <p class="text-muted">No bookings yet.</p>
+                        <a href="{% url 'events:event_list' %}" class="btn btn-primary btn-sm">Browse Events</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- My Favorites -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">My Favorites</h5>
+                </div>
+                <div class="card-body">
+                    {% if favorites %}
+                        {% for favorite in favorites %}
+                        <div class="d-flex align-items-center mb-3">
+                            {% if favorite.event.image %}
+                            <img src="{{ favorite.event.image.url }}" alt="{{ favorite.event.title }}" 
+                                 class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-primary rounded me-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 60px; height: 60px;">
+                                <i class="fas fa-calendar text-white"></i>
+                            </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ favorite.event.title }}</h6>
+                                <small class="text-muted">{{ favorite.event.venue.name }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <a href="{% url 'dashboard:favorites' %}" class="btn btn-outline-primary btn-sm">View All</a>
+                    {% else %}
+                        <p class="text-muted">No favorite events yet.</p>
+                        <a href="{% url 'events:event_list' %}" class="btn btn-primary btn-sm">Browse Events</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- My Event Plan -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">My Event Plan</h5>
+                </div>
+                <div class="card-body">
+                    <div class="calendar-widget">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-bold">Upcoming Events</span>
+                            <a href="{% url 'dashboard:calendar' %}" class="btn btn-outline-primary btn-sm">View Calendar</a>
+                        </div>
+                        
+                        {% if upcoming_events %}
+                            {% for event in upcoming_events|slice:":5" %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <div class="fw-bold">{{ event.title }}</div>
+                                    <small class="text-muted">{{ event.venue.city }}</small>
+                                </div>
+                                <small class="text-muted">{{ event.date|date:"M d" }}</small>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No upcoming events.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

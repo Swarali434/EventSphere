@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications - EventSphere{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Notifications</h2>
+        {% if unread_count > 0 %}
+        <a href="{% url 'notifications:mark_all_as_read' %}" class="btn btn-outline-primary">
+            Mark All as Read ({{ unread_count }})
+        </a>
+        {% endif %}
+    </div>
+    
+    {% if page_obj %}
+    <div class="row">
+        <div class="col-md-12">
+            {% for notification in page_obj %}
+            <div class="card mb-3 {% if not notification.is_read %}border-primary{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title">
+                                {% if not notification.is_read %}
+                                <span class="badge bg-primary me-2">New</span>
+                                {% endif %}
+                                {{ notification.title }}
+                            </h6>
+                            <p class="card-text">{{ notification.message }}</p>
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> {{ notification.created_at|date:"M d, Y g:i A" }}
+                                {% if notification.event %}
+                                | <i class="fas fa-calendar"></i> 
+                                <a href="{% url 'events:event_detail' notification.event.pk %}">{{ notification.event.title }}</a>
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="ms-3">
+                            {% if not notification.is_read %}
+                            <a href="{% url 'notifications:mark_as_read' notification.id %}" class="btn btn-sm btn-outline-primary">
+                                Mark as Read
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-bell fa-4x text-muted mb-3"></i>
+        <h4>No notifications yet</h4>
+        <p class="text-muted">You'll see notifications here when you book events or receive updates.</p>
+        <a href="{% url 'events:event_list' %}" class="btn btn-primary">Browse Events</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

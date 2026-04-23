@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Booking Confirmation - EventSphere{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-check-circle"></i> Booking Confirmed!</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-ticket-alt fa-4x text-success mb-3"></i>
+                        <h5>Your booking has been confirmed</h5>
+                        <p class="text-muted">Booking Reference: <strong>{{ booking.booking_reference }}</strong></p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Event Details</h6>
+                            <hr>
+                            <p><strong>Event:</strong> {{ booking.event.title }}</p>
+                            <p><strong>Venue:</strong> {{ booking.event.venue.name }}</p>
+                            <p><strong>Date:</strong> {{ booking.event.date|date:"l, F d, Y" }}</p>
+                            <p><strong>Time:</strong> {{ booking.event.date|time:"g:i A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Booking Details</h6>
+                            <hr>
+                            <p><strong>Quantity:</strong> {{ booking.quantity }} ticket(s)</p>
+                            <p><strong>Total Amount:</strong> ₹{{ booking.total_amount }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge bg-success">{{ booking.get_status_display }}</span>
+                            </p>
+                            <p><strong>Booked on:</strong> {{ booking.created_at|date:"M d, Y g:i A" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6>Your Tickets</h6>
+                        <hr>
+                        <div class="row">
+                            {% for ticket in booking.tickets.all %}
+                            <div class="col-md-6 mb-2">
+                                <div class="border rounded p-2 bg-light">
+                                    <small class="text-muted">Ticket #{{ forloop.counter }}</small><br>
+                                    <strong>{{ ticket.ticket_number }}</strong>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Important:</strong> Please save this confirmation. You'll need your booking reference and ticket numbers at the event.
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'events:my_bookings' %}" class="btn btn-primary">View My Bookings</a>
+                        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-primary">Back to Dashboard</a>
+                        <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary">Browse More Events</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

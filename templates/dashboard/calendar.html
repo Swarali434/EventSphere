@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Event Calendar - EventSphere{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Event Calendar</h2>
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-outline-primary">Back to Dashboard</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ month_name }} {{ year }}</h5>
+                        <div>
+                            <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                            <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered calendar-table">
+                            <thead>
+                                <tr>
+                                    <th>Sun</th>
+                                    <th>Mon</th>
+                                    <th>Tue</th>
+                                    <th>Wed</th>
+                                    <th>Thu</th>
+                                    <th>Fri</th>
+                                    <th>Sat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for week in calendar %}
+                                <tr>
+                                    {% for day in week %}
+                                    <td class="calendar-day">
+                                        {% if day %}
+                                        <div class="day-number">{{ day }}</div>
+                                        {% for event in events %}
+                                        {% if event.date.day == day %}
+                                        <div class="event-item">
+                                            <small class="text-primary">{{ event.title|truncatechars:15 }}</small>
+                                        </div>
+                                        {% endif %}
+                                        {% endfor %}
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Events This Month</h5>
+                </div>
+                <div class="card-body">
+                    {% if events %}
+                    {% for event in events %}
+                    <div class="d-flex align-items-center mb-3 p-2 border rounded">
+                        <div class="me-3">
+                            <div class="bg-primary text-white rounded text-center p-2" style="min-width: 50px;">
+                                <div class="fw-bold">{{ event.date.day }}</div>
+                                <small>{{ event.date|date:"M" }}</small>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{% url 'events:event_detail' event.pk %}" class="text-decoration-none">
+                                    {{ event.title }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> {{ event.venue.name }}<br>
+                                <i class="fas fa-clock"></i> {{ event.date|time:"g:i A" }}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted">No events this month.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar-table {
+    font-size: 0.9rem;
+}
+
+.calendar-day {
+    height: 120px;
+    vertical-align: top;
+    position: relative;
+    padding: 5px;
+}
+
+.day-number {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.event-item {
+    background-color: #e3f2fd;
+    border-radius: 3px;
+    padding: 2px 5px;
+    margin-bottom: 2px;
+    font-size: 0.75rem;
+}
+
+.calendar-day:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}

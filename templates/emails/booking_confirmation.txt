@@ -1,0 +1,29 @@
+EventSphere - Booking Confirmation
+
+Hi {{ booking.user.first_name|default:booking.user.username }},
+
+Great news! Your booking has been confirmed. Here are your event details:
+
+Event: {{ booking.event.title }}
+Venue: {{ booking.event.venue.name }}
+Address: {{ booking.event.venue.address }}, {{ booking.event.venue.city }}, {{ booking.event.venue.state }}
+Date & Time: {{ booking.event.date|date:"l, F d, Y" }} at {{ booking.event.date|time:"g:i A" }}
+Tickets: {{ booking.quantity }}
+Total Amount: ${{ booking.total_amount }}
+Booking Reference: {{ booking.booking_reference }}
+
+Your Tickets:
+{% for ticket in booking.tickets.all %}
+Ticket #{{ forloop.counter }}: {{ ticket.ticket_number }}
+{% endfor %}
+
+Important: Please bring this confirmation email and a valid ID to the event. You'll need your booking reference and ticket numbers for entry.
+
+We hope you have an amazing time at {{ booking.event.title }}!
+
+Best regards,
+The EventSphere Team
+
+---
+This is an automated email. Please do not reply to this message.
+© 2025 EventSphere. All rights reserved.

@@ -1,0 +1,9 @@
+This directory contains placeholder images for the EventSphere application.
+
+For a complete implementation, you would add:
+- concert-bg.jpg (concert crowd image)
+- festival-bg.jpg (festival stage image)  
+- sports-bg.jpg (sports event image)
+- concert-crowd.jpg (hero background image)
+
+These images should be high-quality photos that match the theme of each category.
